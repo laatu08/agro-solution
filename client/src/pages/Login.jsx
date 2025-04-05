@@ -1,20 +1,45 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+  const navigate=useNavigate()
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
 
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login data:", form);
-    // Send login request to backend here
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/auth/login", form);
+      const userData = res.data;
+
+      // You can store token or user info if needed
+      localStorage.setItem("token", userData.token);
+
+      setMessage("Login successful!");
+      console.log("User:", userData);
+      navigate("/")
+
+      // Redirect to dashboard or homepage
+      // window.location.href = "/dashboard";
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Login failed!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,6 +48,10 @@ export default function Login() {
         <h2 className="text-2xl font-bold text-center text-green-700 mb-6">
           Login
         </h2>
+
+        {message && (
+          <div className="text-center text-red-600 text-sm mb-4">{message}</div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
@@ -53,16 +82,17 @@ export default function Login() {
             />
           </div>
 
-          {/* Submit */}
-          <Button type="submit" className="w-full mt-2">
-            Login
+          <Button type="submit" className="w-full mt-2" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
           </Button>
         </form>
 
-        {/* Optional: Link to register */}
         <p className="mt-4 text-center text-sm text-gray-600">
           Don't have an account?{" "}
-          <a href="/register" className="text-green-700 font-medium hover:underline">
+          <a
+            href="/register"
+            className="text-green-700 font-medium hover:underline"
+          >
             Register here
           </a>
         </p>

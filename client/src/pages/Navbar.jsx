@@ -1,11 +1,24 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token); // Check if token exists
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    navigate("/login");
+  };
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -36,12 +49,24 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-          <Button className="bg-green-600 hover:bg-green-700 text-white transition duration-200">
-            Register
-          </Button>
-          <Button className="bg-green-600 hover:bg-green-700 text-white transition duration-200">
-            Login
-          </Button>
+
+          {!isLoggedIn ? (
+            <>
+              <Button className="bg-green-600 hover:bg-green-700 text-white transition duration-200">
+                <Link to="/register">Register</Link>
+              </Button>
+              <Button className="bg-green-600 hover:bg-green-700 text-white transition duration-200">
+                <Link to="/login">Login</Link>
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 text-white transition duration-200"
+            >
+              Logout
+            </Button>
+          )}
         </nav>
 
         {/* Mobile Navigation */}
@@ -64,18 +89,33 @@ export default function Navbar() {
                     {link.label}
                   </Link>
                 ))}
-                <Button
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Register
-                </Button>
-                <Button
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Login
-                </Button>
+
+                {!isLoggedIn ? (
+                  <>
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Link to="/register">Register</Link>
+                    </Button>
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <Link to="/login">Login</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Logout
+                  </Button>
+                )}
               </div>
             </SheetContent>
           </Sheet>
